@@ -39,41 +39,14 @@ public class GT4500 implements SpaceShip {
   }
 
   private boolean fireSingleTorpedo(){
-    boolean firingSuccess = false;
     if (wasPrimaryFiredLast) {
-      // try to fire the secondary first
-      if (! secondaryTorpedoStore.isEmpty()) {
-        firingSuccess = secondaryTorpedoStore.fire(1);
-        wasPrimaryFiredLast = false;
-      }
-      else {
-        // although primary was fired last time, but the secondary is empty
-        // thus try to fire primary again
-        if (! primaryTorpedoStore.isEmpty()) {
-          firingSuccess = primaryTorpedoStore.fire(1);
-          wasPrimaryFiredLast = true;
-        }
-        // if both of the stores are empty, nothing can be done, return failure
-      }
-    }
-    else {
-      // try to fire the primary first
-      if (! primaryTorpedoStore.isEmpty()) {
-        firingSuccess = primaryTorpedoStore.fire(1);
-        wasPrimaryFiredLast = true;
-      }
-      else {
-        // although secondary was fired last time, but primary is empty
-        // thus try to fire secondary again
-        if (! secondaryTorpedoStore.isEmpty()) {
-          firingSuccess = secondaryTorpedoStore.fire(1);
-          wasPrimaryFiredLast = false;
-        }
-
-        // if both of the stores are empty, nothing can be done, return failure
-      }
+      return tryFiringFromStore(secondaryTorpedoStore) || tryFiringFromStore(primaryTorpedoStore);
+    } else {
+      return tryFiringFromStore(primaryTorpedoStore) || tryFiringFromStore(secondaryTorpedoStore);
     }
   }
+
+
 
   private boolean fireAllTorpedo() {
     if (!primaryTorpedoStore.isEmpty()) {
@@ -86,5 +59,13 @@ public class GT4500 implements SpaceShip {
       wasPrimaryFiredLast = !secondarySuccess && wasPrimaryFiredLast;
     }
   }
-  
+
+  private boolean tryFiringFromStore(TorpedoStore store) {
+    if(store.isEmpty){
+      return false;
+    }
+    boolean firingSuccess = secondaryTorpedoStore.fire(1);
+    wasPrimaryFiredLast = firingSuccess && (!primaryTorpedoStore.equals(store));
+    return firingSuccess
+  }
 }
