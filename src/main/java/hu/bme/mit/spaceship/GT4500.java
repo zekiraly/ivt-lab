@@ -9,10 +9,15 @@ public class GT4500 implements SpaceShip {
   private TorpedoStore secondaryTorpedoStore;
 
   private boolean wasPrimaryFiredLast = false;
-
+  
   public GT4500() {
     this.primaryTorpedoStore = new TorpedoStore(10);
     this.secondaryTorpedoStore = new TorpedoStore(10);
+  }
+
+  public GT4500(TorpedoStore primary, TorpedoStore secondary) {
+    this.primaryTorpedoStore = primary;
+    this.secondaryTorpedoStore = secondary;
   }
 
   public boolean fireLaser(FiringMode firingMode) {
@@ -40,15 +45,14 @@ public class GT4500 implements SpaceShip {
 
   private boolean fireSingleTorpedo(){
     if (wasPrimaryFiredLast) {
-      return tryFiringFromStore(secondaryTorpedoStore) || tryFiringFromStore(primaryTorpedoStore);
+    	return secondaryTorpedoStore.isEmpty() ? tryFiringFromStore(primaryTorpedoStore) : tryFiringFromStore(secondaryTorpedoStore);
     } else {
-      return tryFiringFromStore(primaryTorpedoStore) || tryFiringFromStore(secondaryTorpedoStore);
+    	return primaryTorpedoStore.isEmpty() ? tryFiringFromStore(secondaryTorpedoStore) : tryFiringFromStore(primaryTorpedoStore);
     }
   }
 
-
-
   private boolean fireAllTorpedo() {
+	boolean firingSuccess = false;
     if (!primaryTorpedoStore.isEmpty()) {
       firingSuccess = primaryTorpedoStore.fire(primaryTorpedoStore.getTorpedoCount());
       wasPrimaryFiredLast = firingSuccess || wasPrimaryFiredLast;
@@ -58,14 +62,15 @@ public class GT4500 implements SpaceShip {
       firingSuccess = secondarySuccess || firingSuccess;
       wasPrimaryFiredLast = !secondarySuccess && wasPrimaryFiredLast;
     }
+    return firingSuccess;
   }
 
   private boolean tryFiringFromStore(TorpedoStore store) {
-    if(store.isEmpty){
+    if(store.isEmpty()){
       return false;
     }
-    boolean firingSuccess = secondaryTorpedoStore.fire(1);
-    wasPrimaryFiredLast = firingSuccess && (!primaryTorpedoStore.equals(store));
-    return firingSuccess
+    boolean firingSuccess = store.fire(1);
+    wasPrimaryFiredLast = firingSuccess ? primaryTorpedoStore.equals(store) : wasPrimaryFiredLast;
+    return firingSuccess;
   }
 }
